@@ -1,0 +1,13 @@
+name: mangopeople
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # This runs every 5 minutes
+
+jobs:
+  trigger-vercel-function:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Vercel API Endpoint
+        run: |
+          curl -https://mangopeople.vercel.app/api/posts
