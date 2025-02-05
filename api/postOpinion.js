@@ -17,11 +17,14 @@ const postSchema = new mongoose.Schema({
 const Post = mongoose.model('Post', postSchema);
 
 // Set CORS headers
+// Set CORS headers for all methods
 const setCorsHeaders = (res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins or set a specific domain
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');  // Allowed methods
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');  // Allowed headers
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');  // Allowed methods
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');  // Allowed headers
+    res.setHeader('Access-Control-Allow-Credentials', 'true'); // Enable cookies if needed
 };
+
 
 // Serverless API handler for creating/editing posts
 export default async function handler(req, res) {
