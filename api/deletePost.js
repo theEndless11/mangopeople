@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE') {
         try {
             const { postId, username, sessionId } = req.body;
-            
+
             // Check that the required fields are present
             if (!postId || !username || !sessionId) {
                 return res.status(400).json({ message: 'Missing required fields: postId, username, sessionId' });
@@ -58,6 +58,37 @@ export default async function handler(req, res) {
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Error deleting post', error });
+        }
+    } else if (req.method === 'PUT') {
+        try {
+            const { id, message, username, timestamp } = req.body;
+
+            // Check that the required fields are present
+            if (!id || !message || !username || !timestamp) {
+                return res.status(400).json({ message: 'Missing required fields: id, message, username, timestamp' });
+            }
+
+            // Find the post to update
+            const post = await Post.findById(id);
+            if (!post) {
+                return res.status(404).json({ message: 'Post not found' });
+            }
+
+            // Ensure the post belongs to the user making the request
+            if (post.username !== username) {
+                return res.status(403).json({ message: 'You can only edit your own posts' });
+            }
+
+            // Update the post with the new data
+            post.message = message;
+            post.timestamp = new Date(timestamp);
+            await post.save();
+
+            res.status(200).json({ message: 'Post updated successfully', post });
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error editing post', error });
         }
     } else {
         res.status(405).json({ message: 'Method Not Allowed' });
