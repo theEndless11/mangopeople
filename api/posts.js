@@ -17,12 +17,12 @@ const postSchema = new mongoose.Schema({
 // Create the model for posts
 const Post = mongoose.model('Post', postSchema);
 
-// Set CORS headers
+// Set CORS headers for all methods
 const setCorsHeaders = (res) => {
-    // You can replace this with a specific origin URL if necessary
-    res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');  // Allow specific methods
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');  // Allow specific headers
+    res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins or set a specific domain
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');  // Allowed methods
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');  // Allowed headers
+    res.setHeader('Access-Control-Allow-Credentials', 'true'); // Enable cookies if needed
 };
 
 // Serverless API handler for getting posts
