@@ -49,25 +49,27 @@ export default async function handler(req, res) {
             console.log('Database connected successfully.');
 
             const newPost = new Post({ message, timestamp: new Date(), username, sessionId });
+            console.log('Post data:', newPost);
+
             try {
-                await newPost.save();
-                console.log('New post saved:', newPost);
+                const savedPost = await newPost.save();
+                console.log('Post saved:', savedPost);
 
                 try {
-                    await publishToAbly('newOpinion', newPost);
-                    console.log('Post published to Ably:', newPost);
+                    await publishToAbly('newOpinion', savedPost);
+                    console.log('Post published to Ably:', savedPost);
                 } catch (ablyError) {
                     console.error('Error publishing to Ably:', ablyError);
                 }
 
                 const cleanPost = {
-                    _id: newPost._id,
-                    message: newPost.message,
-                    timestamp: newPost.timestamp,
-                    username: newPost.username,
-                    likes: newPost.likes,
-                    dislikes: newPost.dislikes,
-                    comments: newPost.comments,
+                    _id: savedPost._id,
+                    message: savedPost.message,
+                    timestamp: savedPost.timestamp,
+                    username: savedPost.username,
+                    likes: savedPost.likes,
+                    dislikes: savedPost.dislikes,
+                    comments: savedPost.comments,
                 };
 
                 res.status(201).json(cleanPost);
