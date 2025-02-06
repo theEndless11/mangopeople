@@ -61,15 +61,7 @@ export default async function handler(req, res) {
                 const savedPost = await newPost.save();
                 console.log('Post saved:', savedPost);
 
-                try {
-                    // Publish to Ably for real-time updates
-                    await publishToAbly('newOpinion', savedPost);
-                    console.log('Post published to Ably:', savedPost);
-                } catch (ablyError) {
-                    console.error('Error publishing to Ably:', ablyError);
-                    // Still return the post to client, even if Ably fails
-                }
-
+                // Send the response to the client immediately
                 const cleanPost = {
                     _id: savedPost._id,
                     message: savedPost.message,
@@ -80,7 +72,16 @@ export default async function handler(req, res) {
                     comments: savedPost.comments,
                 };
 
-                return res.status(201).json(cleanPost);
+                res.status(201).json(cleanPost);
+
+                // Publish to Ably in the background without delaying the response
+                try {
+                    await publishToAbly('newOpinion', savedPost);
+                    console.log('Post published to Ably:', savedPost);
+                } catch (ablyError) {
+                    console.error('Error publishing to Ably:', ablyError);
+                }
+
             } catch (saveError) {
                 console.error('Error saving post to database:', saveError);
                 return res.status(500).json({ message: 'Error saving post', error: saveError.message });
@@ -94,4 +95,5 @@ export default async function handler(req, res) {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
 }
+
 
