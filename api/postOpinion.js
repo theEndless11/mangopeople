@@ -17,10 +17,12 @@ const postSchema = new mongoose.Schema({
 const Post = mongoose.model('Post', postSchema);
 
 const setCorsHeaders = (res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    const allowedOrigin = 'https://latestnewsandaffairs.site';  // Replace with your allowed domain
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    console.log('CORS headers set to:', allowedOrigin);  // Log the origin being set
 };
 
 export default async function handler(req, res) {
