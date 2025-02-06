@@ -16,7 +16,6 @@ const postSchema = new mongoose.Schema({
 });
 const Post = mongoose.model('Post', postSchema);
 
-// Set CORS headers
 // Set CORS headers for all methods
 const setCorsHeaders = (res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins or set a specific domain
