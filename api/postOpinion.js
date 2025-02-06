@@ -36,6 +36,9 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { message, username, sessionId } = req.body;
 
+        // Log the request body to debug incoming data
+        console.log('Received post data:', req.body);
+
         // Validate request body
         if (!message || message.trim() === '') {
             console.error('Message cannot be empty');
