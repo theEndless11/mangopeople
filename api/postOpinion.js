@@ -36,10 +36,13 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { message, username, sessionId } = req.body;
 
+        // Validate request body
         if (!message || message.trim() === '') {
+            console.error('Message cannot be empty');
             return res.status(400).json({ message: 'Message cannot be empty' });
         }
         if (!username || !sessionId) {
+            console.error('Username and sessionId are required');
             return res.status(400).json({ message: 'Username and sessionId are required' });
         }
 
@@ -49,17 +52,19 @@ export default async function handler(req, res) {
             console.log('Database connected successfully.');
 
             const newPost = new Post({ message, timestamp: new Date(), username, sessionId });
-            console.log('Post data:', newPost);
+            console.log('New Post data:', newPost);
 
             try {
                 const savedPost = await newPost.save();
                 console.log('Post saved:', savedPost);
 
                 try {
+                    // Publish to Ably for real-time updates
                     await publishToAbly('newOpinion', savedPost);
                     console.log('Post published to Ably:', savedPost);
                 } catch (ablyError) {
                     console.error('Error publishing to Ably:', ablyError);
+                    // Still return the post to client, even if Ably fails
                 }
 
                 const cleanPost = {
@@ -72,17 +77,18 @@ export default async function handler(req, res) {
                     comments: savedPost.comments,
                 };
 
-                res.status(201).json(cleanPost);
+                return res.status(201).json(cleanPost);
             } catch (saveError) {
-                console.error('Error saving post:', saveError);
-                res.status(500).json({ message: 'Error saving post', error: saveError });
+                console.error('Error saving post to database:', saveError);
+                return res.status(500).json({ message: 'Error saving post', error: saveError.message });
             }
         } catch (dbError) {
             console.error('Database connection failed:', dbError);
-            res.status(500).json({ message: 'Database connection error', error: dbError });
+            return res.status(500).json({ message: 'Database connection error', error: dbError.message });
         }
     } else {
-        res.status(405).json({ message: 'Method Not Allowed' });
+        console.error('Method Not Allowed');
+        return res.status(405).json({ message: 'Method Not Allowed' });
     }
 }
 
