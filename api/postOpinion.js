@@ -65,89 +65,75 @@ export default async function handler(req, res) {
         }
     }
 
-    // Handle PUT requests for liking a post
-    else if (req.method === 'PUT' && req.query.action === 'like') {
-        console.log('Received PUT request for liking post:');
-        console.log('Query Parameters:', req.query);  // Log the query params
-        console.log('Body:', req.body);  // Log the body to check what was sent
+  // Handle PUT requests for liking a post
+else if (req.method === 'PUT' && req.query.action === 'like') {
+    console.log('Received PUT request for liking post:');
+    console.log('Query Parameters:', req.query);
+    console.log('Body:', req.body);
 
-        const { postId, username } = req.body;
+    const { postId, username } = req.body;
 
-        if (!postId || !username) {
-            return res.status(400).json({ message: 'Post ID and username are required' });
-        }
-
-        try {
-            await connectToDatabase();
-
-            const post = await Post.findById(postId);
-            if (!post) {
-                return res.status(404).json({ message: 'Post not found' });
-            }
-
-            // Check if the user has already liked the post
-            if (!post.likedBy.includes(username)) {
-                post.likes += 1;
-                post.likedBy.push(username);
-                await post.save();
-            } else {
-                console.log('User has already liked this post.');
-            }
-
-            console.log('Post after like:', post);  // Log post after like action
-
-            res.status(200).json({
-                message: 'Post liked successfully',
-                likes: post.likes,
-                dislikes: post.dislikes,
-            });
-        } catch (error) {
-            console.error('Error liking post:', error);
-            return res.status(500).json({ message: 'Error liking post', error: error.message });
-        }
+    if (!postId || !username) {
+        return res.status(400).json({ message: 'Post ID and username are required' });
     }
 
-    // Handle PUT requests for disliking a post
-    else if (req.method === 'PUT' && req.query.action === 'dislike') {
-        console.log('Received PUT request for disliking post:');
-        console.log('Query Parameters:', req.query);  // Log the query params
-        console.log('Body:', req.body);  // Log the body to check what was sent
+    try {
+        await connectToDatabase();
 
-        const { postId, username } = req.body;
-
-        if (!postId || !username) {
-            return res.status(400).json({ message: 'Post ID and username are required' });
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
         }
 
-        try {
-            await connectToDatabase();
-
-            const post = await Post.findById(postId);
-            if (!post) {
-                return res.status(404).json({ message: 'Post not found' });
-            }
-
-            // Check if the user has already disliked the post
-            if (!post.dislikedBy.includes(username)) {
-                post.dislikes += 1;
-                post.dislikedBy.push(username);
-                await post.save();
-            } else {
-                console.log('User has already disliked this post.');
-            }
-
-            console.log('Post after dislike:', post);  // Log post after dislike action
-
-            res.status(200).json({
-                message: 'Post disliked successfully',
-                likes: post.likes,
-                dislikes: post.dislikes,
-            });
-        } catch (error) {
-            console.error('Error disliking post:', error);
-            return res.status(500).json({ message: 'Error disliking post', error: error.message });
+        if (!post.likedBy.includes(username)) {
+            post.likes += 1;
+            post.likedBy.push(username);
+            await post.save();
         }
+
+        // Send the updated post back in the response
+        return res.status(200).json(post);  // Send the updated post object
+
+    } catch (error) {
+        console.error('Error liking post:', error);
+        return res.status(500).json({ message: 'Error liking post', error: error.message });
     }
+}
+
+// Handle PUT requests for disliking a post
+else if (req.method === 'PUT' && req.query.action === 'dislike') {
+    console.log('Received PUT request for disliking post:');
+    console.log('Query Parameters:', req.query);
+    console.log('Body:', req.body);
+
+    const { postId, username } = req.body;
+
+    if (!postId || !username) {
+        return res.status(400).json({ message: 'Post ID and username are required' });
+    }
+
+    try {
+        await connectToDatabase();
+
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        if (!post.dislikedBy.includes(username)) {
+            post.dislikes += 1;
+            post.dislikedBy.push(username);
+            await post.save();
+        }
+
+        // Send the updated post back in the response
+        return res.status(200).json(post);  // Send the updated post object
+
+    } catch (error) {
+        console.error('Error disliking post:', error);
+        return res.status(500).json({ message: 'Error disliking post', error: error.message });
+    }
+}
 
     // Method Not Allowed
     else {
