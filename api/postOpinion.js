@@ -24,6 +24,7 @@ const setCorsHeaders = (res) => {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     console.log('CORS headers set to:', allowedOrigin);  // Log the origin being set
 };
+
 export default async function handler(req, res) {
     if (req.method === 'OPTIONS') {
         setCorsHeaders(res);
@@ -47,6 +48,8 @@ export default async function handler(req, res) {
             const newPost = new Post({ message, timestamp: new Date(), username, sessionId });
             const savedPost = await newPost.save();
 
+            console.log('Post created:', savedPost);  // Log the created post for debugging
+
             res.status(201).json({
                 _id: savedPost._id,
                 message: savedPost.message,
@@ -65,8 +68,8 @@ export default async function handler(req, res) {
     // Handle PUT requests for liking a post
     else if (req.method === 'PUT' && req.query.action === 'like') {
         console.log('Received PUT request for liking post:');
-        console.log('Query Parameters:', req.query); // Log the query params
-        console.log('Body:', req.body); // Log the body to check what was sent
+        console.log('Query Parameters:', req.query);  // Log the query params
+        console.log('Body:', req.body);  // Log the body to check what was sent
 
         const { postId, username } = req.body;
 
@@ -82,11 +85,16 @@ export default async function handler(req, res) {
                 return res.status(404).json({ message: 'Post not found' });
             }
 
+            // Check if the user has already liked the post
             if (!post.likedBy.includes(username)) {
                 post.likes += 1;
                 post.likedBy.push(username);
                 await post.save();
+            } else {
+                console.log('User has already liked this post.');
             }
+
+            console.log('Post after like:', post);  // Log post after like action
 
             res.status(200).json({
                 message: 'Post liked successfully',
@@ -102,8 +110,8 @@ export default async function handler(req, res) {
     // Handle PUT requests for disliking a post
     else if (req.method === 'PUT' && req.query.action === 'dislike') {
         console.log('Received PUT request for disliking post:');
-        console.log('Query Parameters:', req.query); // Log the query params
-        console.log('Body:', req.body); // Log the body to check what was sent
+        console.log('Query Parameters:', req.query);  // Log the query params
+        console.log('Body:', req.body);  // Log the body to check what was sent
 
         const { postId, username } = req.body;
 
@@ -119,11 +127,16 @@ export default async function handler(req, res) {
                 return res.status(404).json({ message: 'Post not found' });
             }
 
+            // Check if the user has already disliked the post
             if (!post.dislikedBy.includes(username)) {
                 post.dislikes += 1;
                 post.dislikedBy.push(username);
                 await post.save();
+            } else {
+                console.log('User has already disliked this post.');
             }
+
+            console.log('Post after dislike:', post);  // Log post after dislike action
 
             res.status(200).json({
                 message: 'Post disliked successfully',
