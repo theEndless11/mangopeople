@@ -1,6 +1,6 @@
-import { connectToDatabase } from '../utils/db';  // Corrected path
 import mongoose from 'mongoose';
-import { publishToAbly } from '../utils/ably';  // Corrected path
+import { connectToDatabase } from '../utils/db'; // Your connection utility
+import { publishToAbly } from '../utils/ably';  // Assuming you have an Ably utility
 
 // Define the schema for the post
 const postSchema = new mongoose.Schema({
@@ -14,33 +14,32 @@ const postSchema = new mongoose.Schema({
     dislikedBy: [String],  // Store usernames or user IDs of users who disliked the post
     comments: [{ username: String, comment: String, timestamp: Date }]
 });
+
+// Create the model for posts
 const Post = mongoose.model('Post', postSchema);
 
-// Function to set CORS headers
-const setCorsHeaders = (res, origin = '*') => {
-    res.setHeader('Access-Control-Allow-Origin', origin);  // Dynamically handle CORS origin
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Max-Age', 86400);  // Cache preflight response for 24 hours
+// Set CORS headers for all methods
+const setCorsHeaders = (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins or set a specific domain
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');  // Allowed methods
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');  // Allowed headers
+    res.setHeader('Access-Control-Allow-Credentials', 'true'); // Enable cookies if needed
 };
 
 // Serverless API handler for creating/editing posts
 export default async function handler(req, res) {
+    // Set CORS headers before processing the request
+    setCorsHeaders(res);
+
     // Handle pre-flight OPTIONS request
     if (req.method === 'OPTIONS') {
-        setCorsHeaders(res, req.headers.origin);  // Use dynamic origin
-        return res.status(200).end();  // Respond with 200 OK for OPTIONS pre-flight
+        return res.status(200).end(); // Respond with 200 OK for OPTIONS pre-flight
     }
-
-    // Set CORS headers before processing the request
-    setCorsHeaders(res, req.headers.origin);
 
     if (req.method === 'POST') {
         // Handle new post creation
         const { message, username, sessionId } = req.body;
 
-        // Validation checks
         if (!message || message.trim() === '') {
             return res.status(400).json({ message: 'Message cannot be empty' });
         }
@@ -58,7 +57,7 @@ export default async function handler(req, res) {
 
             console.log('New post saved:', newPost);
 
-            // Publish to Ably
+            // Publish to Ably (optional, as per your requirement)
             try {
                 await publishToAbly('newOpinion', newPost);
                 console.log('Post published to Ably:', newPost);
@@ -92,7 +91,7 @@ export default async function handler(req, res) {
 
         try {
             console.log('Connecting to database...');
-            await connectToDatabase();
+            await connectToDatabase();  // Ensure this step completes
             console.log('Database connected successfully.');
 
             const post = await Post.findById(postId);
@@ -119,7 +118,7 @@ export default async function handler(req, res) {
 
             console.log('Post updated:', post);
 
-            // Publish to Ably
+            // Publish to Ably (optional)
             try {
                 await publishToAbly('editOpinion', post);
                 console.log('Post updated in Ably:', post);
