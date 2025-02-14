@@ -17,12 +17,11 @@ const postSchema = new mongoose.Schema({
 const Post = mongoose.model('Post', postSchema);
 
 // Function to set CORS headers
-const setCorsHeaders = (res) => {
-    // Update this to handle specific origin
-    res.setHeader('Access-Control-Allow-Origin', '*'); // Change this to '*' for testing
+const setCorsHeaders = (res, origin = '*') => {
+    res.setHeader('Access-Control-Allow-Origin', origin);  // Dynamically handle CORS origin
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');  // This is important if you're using cookies
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Max-Age', 86400);  // Cache preflight response for 24 hours
 };
 
@@ -30,17 +29,18 @@ const setCorsHeaders = (res) => {
 export default async function handler(req, res) {
     // Handle pre-flight OPTIONS request
     if (req.method === 'OPTIONS') {
-        setCorsHeaders(res);
-        return res.status(200).end(); // Respond with 200 OK for OPTIONS pre-flight
+        setCorsHeaders(res, req.headers.origin);  // Use dynamic origin
+        return res.status(200).end();  // Respond with 200 OK for OPTIONS pre-flight
     }
 
     // Set CORS headers before processing the request
-    setCorsHeaders(res);
+    setCorsHeaders(res, req.headers.origin);
 
     if (req.method === 'POST') {
         // Handle new post creation
         const { message, username, sessionId } = req.body;
 
+        // Validation checks
         if (!message || message.trim() === '') {
             return res.status(400).json({ message: 'Message cannot be empty' });
         }
@@ -90,7 +90,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ message: 'Post ID is required' });
         }
 
-        // Fetch the post by its ID
         try {
             console.log('Connecting to database...');
             await connectToDatabase();
@@ -146,6 +145,6 @@ export default async function handler(req, res) {
             res.status(500).json({ message: 'Error editing post', error });
         }
     } else {
-        res.status(405).json({ message: 'Method Not Allowed' });
+        res.status(405).json({ message: 'Method Not Allowed' });  // Method not allowed response
     }
 }
