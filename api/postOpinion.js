@@ -18,7 +18,7 @@ const Post = mongoose.model('Post', postSchema);
 
 const setCorsHeaders = (res) => {
     // Ensure your frontend URL is correct
-  res.setHeader('Access-Control-Allow-Origin', 'https://latestnewsandaffairs.site/public/index.html');  // Allow all origins or set a specific domain
+  res.setHeader('Access-Control-Allow-Origin', 'https://latestnewsandaffairs.site/');  // Allow all origins or set a specific domain
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true');  // If you're using cookies, this is important
