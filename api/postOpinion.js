@@ -18,11 +18,9 @@ const Post = mongoose.model('Post', postSchema);
 
 // Set CORS headers
 const setCorsHeaders = (res) => {
-    // Replace 'https://your-frontend-url.com' with the actual frontend URL
-    res.setHeader('Access-Control-Allow-Origin', 'https://latestnewsandaffairs.site/public/index.html');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');  // Allow credentials (cookies, auth headers)
+    res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins or set a specific domain
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');  // Allowed methods
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');  // Allowed headers
 };
 
 // Serverless API handler for creating/editing posts
