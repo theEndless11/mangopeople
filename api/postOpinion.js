@@ -19,7 +19,7 @@ const Post = mongoose.model('Post', postSchema);
 // Function to set CORS headers
 const setCorsHeaders = (res) => {
     // Update this to handle specific origin
-    res.setHeader('Access-Control-Allow-Origin', 'https://latestnewsandaffairs.site'); // Change this to '*' for testing
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Change this to '*' for testing
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true');  // This is important if you're using cookies
