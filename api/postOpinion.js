@@ -27,19 +27,19 @@ const setCorsHeaders = (res) => {
 
 // Serverless API handler for creating/editing posts
 export default async function handler(req, res) {
+    // Set CORS headers before any logic
+    setCorsHeaders(res);
+
     // Handle pre-flight OPTIONS request
     if (req.method === 'OPTIONS') {
-        setCorsHeaders(res);
         return res.status(200).end(); // Respond with 200 OK for OPTIONS pre-flight
     }
-
-    // Set CORS headers before processing the request
-    setCorsHeaders(res);
 
     if (req.method === 'POST') {
         // Handle new post creation
         const { message, username, sessionId } = req.body;
-
+        
+        // Check if message, username, or sessionId are missing
         if (!message || message.trim() === '') {
             return res.status(400).json({ message: 'Message cannot be empty' });
         }
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
 
         try {
             console.log('Connecting to database...');
-            await connectToDatabase();  // Ensure this step completes
+            await connectToDatabase();
             console.log('Database connected successfully.');
 
             const newPost = new Post({ message, timestamp: new Date(), username, sessionId });
@@ -57,15 +57,10 @@ export default async function handler(req, res) {
 
             console.log('New post saved:', newPost);
 
-            // Publish to Ably
-            try {
-                await publishToAbly('newOpinion', newPost);
-                console.log('Post published to Ably:', newPost);
-            } catch (error) {
-                console.error('Error publishing to Ably:', error);
-            }
+            // Publish the post to Ably for real-time updates
+            await publishToAbly('newOpinion', newPost);
+            console.log('Post published to Ably:', newPost);
 
-            // Send only the necessary data (not the full Mongoose document)
             const cleanPost = {
                 _id: newPost._id,
                 message: newPost.message,
@@ -76,7 +71,7 @@ export default async function handler(req, res) {
                 comments: newPost.comments,
             };
 
-            res.status(201).json(cleanPost);  // Send clean post data without Mongoose metadata
+            res.status(201).json(cleanPost);
         } catch (error) {
             console.error('Error saving post:', error);
             res.status(500).json({ message: 'Error saving post', error });
@@ -89,7 +84,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ message: 'Post ID is required' });
         }
 
-        // Fetch the post by its ID
         try {
             console.log('Connecting to database...');
             await connectToDatabase();
@@ -100,34 +94,19 @@ export default async function handler(req, res) {
                 return res.status(404).json({ message: 'Post not found' });
             }
 
-            // Update the fields (message, likes, dislikes, comments)
-            if (message && message.trim() !== '') {
-                post.message = message;
-            }
-            if (likes !== undefined) {
-                post.likes = likes;
-            }
-            if (dislikes !== undefined) {
-                post.dislikes = dislikes;
-            }
-            if (comments !== undefined) {
-                post.comments = comments;
-            }
+            // Update the fields
+            if (message && message.trim() !== '') post.message = message;
+            if (likes !== undefined) post.likes = likes;
+            if (dislikes !== undefined) post.dislikes = dislikes;
+            if (comments !== undefined) post.comments = comments;
 
-            // Save the updated post
             await post.save();
 
             console.log('Post updated:', post);
 
-            // Publish to Ably
-            try {
-                await publishToAbly('editOpinion', post);
-                console.log('Post updated in Ably:', post);
-            } catch (error) {
-                console.error('Error publishing to Ably:', error);
-            }
+            await publishToAbly('editOpinion', post);
+            console.log('Post updated in Ably:', post);
 
-            // Send only the necessary data (not the full Mongoose document)
             const updatedPost = {
                 _id: post._id,
                 message: post.message,
@@ -138,8 +117,7 @@ export default async function handler(req, res) {
                 comments: post.comments,
             };
 
-            res.status(200).json(updatedPost);  // Send updated post data
-
+            res.status(200).json(updatedPost);
         } catch (error) {
             console.error('Error editing post:', error);
             res.status(500).json({ message: 'Error editing post', error });
@@ -148,3 +126,4 @@ export default async function handler(req, res) {
         res.status(405).json({ message: 'Method Not Allowed' });
     }
 }
+
