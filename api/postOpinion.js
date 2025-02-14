@@ -17,11 +17,15 @@ const postSchema = new mongoose.Schema({
 const Post = mongoose.model('Post', postSchema);
 
 const setCorsHeaders = (res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins temporarily for testing
+    // Replace '*' with the specific origin (e.g., 'https://yourfrontenddomain.com')
+    res.setHeader('Access-Control-Allow-Origin', 'https://latestnewsandaffairs.site/public/index.html');  // Replace with your frontend URL
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // If you need to allow credentials, uncomment the line below and keep the specific origin above
     res.setHeader('Access-Control-Allow-Credentials', 'true');
 };
+
 
 
 // Serverless API handler for creating/editing posts
