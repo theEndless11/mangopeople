@@ -1,7 +1,7 @@
 import Ably from 'ably';
 
 // Replace process.env.ABLY_API_KEY with the actual API key here
-const ably = new Ably.Realtime('z-PJnQ.-j8d2A:2MPSxeZ_Vfj487pTV11np4OE5yDTAZiln1a5IXWNj34');  // Provide your actual Ably API key here
+const ably = new Ably.Realtime('Sca1sw.SyR6NQ:Hjna0qoOqkun3de7zgvuViTMGl1l2XfhR6ATNkyfEik');  // Provide your actual Ably API key here
 const channel = ably.channels.get('opinions');  // Use the same 'opinions' channel for all communication
 
 /**
