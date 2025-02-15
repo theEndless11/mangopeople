@@ -16,25 +16,29 @@ const postSchema = new mongoose.Schema({
 });
 const Post = mongoose.model('Post', postSchema);
 
-// Set CORS headers with dynamic domain handling
+// Set CORS headers with dynamic domain handling (Allow all origins for testing)
 const setCorsHeaders = (req, res) => {
-    // Allow requests from a specific origin (adjust to your frontend URL or allow all origins for testing)
-    res.setHeader('Access-Control-Allow-Origin', 'https://latestnewsandaffairs.site');  // Update to your frontend's URL
+    // Allow all origins for testing, or specify a dynamic list of allowed origins
+    res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all domains (use with caution in production)
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');  // Allowing additional headers
     res.setHeader('Access-Control-Allow-Credentials', 'true');  // Allow credentials (cookies or authentication)
     res.setHeader('Cache-Control', 'no-cache');  // Prevent caching of OPTIONS requests
+
+    console.log('CORS headers set:', req.headers.origin);  // Log the origin of the request
 };
 
 // Serverless API handler for creating/editing posts
 export default async function handler(req, res) {
     // Handle pre-flight OPTIONS request
     if (req.method === 'OPTIONS') {
+        console.log('Handling OPTIONS request');
         setCorsHeaders(req, res);  // Include CORS headers for OPTIONS requests
         return res.status(200).end(); // Respond with 200 OK for OPTIONS pre-flight
     }
 
-    // Set CORS headers for other requests (POST, PUT, PATCH, etc.)
+    // Set CORS headers for all other requests
+    console.log('Handling method:', req.method);
     setCorsHeaders(req, res);
 
     if (req.method === 'POST') {
@@ -42,9 +46,11 @@ export default async function handler(req, res) {
 
         // Validate input
         if (!message || message.trim() === '') {
+            console.log('Validation error: Message cannot be empty');
             return res.status(400).json({ message: 'Message cannot be empty' });
         }
         if (!username || !sessionId) {
+            console.log('Validation error: Username and sessionId are required');
             return res.status(400).json({ message: 'Username and sessionId are required' });
         }
 
@@ -77,6 +83,7 @@ export default async function handler(req, res) {
                 comments: newPost.comments,
             };
 
+            console.log('Sending response with new post:', cleanPost);
             res.status(201).json(cleanPost);  // Send clean post data
         } catch (error) {
             console.error('Error saving post:', error);
@@ -87,6 +94,7 @@ export default async function handler(req, res) {
         const { postId, message, likes, dislikes, comments } = req.body;
 
         if (!postId) {
+            console.log('Validation error: Post ID is required');
             return res.status(400).json({ message: 'Post ID is required' });
         }
 
@@ -97,6 +105,7 @@ export default async function handler(req, res) {
 
             const post = await Post.findById(postId);
             if (!post) {
+                console.log('Post not found with ID:', postId);
                 return res.status(404).json({ message: 'Post not found' });
             }
 
@@ -136,6 +145,7 @@ export default async function handler(req, res) {
                 comments: post.comments,
             };
 
+            console.log('Sending response with updated post:', updatedPost);
             res.status(200).json(updatedPost);  // Send updated post data
 
         } catch (error) {
@@ -143,6 +153,7 @@ export default async function handler(req, res) {
             res.status(500).json({ message: 'Error editing post', error });
         }
     } else {
+        console.log('Method not allowed:', req.method);
         res.status(405).json({ message: 'Method Not Allowed' });
     }
 }
