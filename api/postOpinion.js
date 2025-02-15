@@ -32,9 +32,13 @@ export default async function handler(req, res) {
     setCorsHeaders(res);
 
     // Handle pre-flight OPTIONS request
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end(); // Respond with 200 OK for OPTIONS pre-flight
-    }
+ if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return res.status(200).end();  // Make sure to end it correctly
+}
+
 
     try {
         if (req.method === 'POST') {
