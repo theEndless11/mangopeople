@@ -18,8 +18,8 @@ const Post = mongoose.model('Post', postSchema);
 
 // Set CORS headers with dynamic domain handling
 const setCorsHeaders = (req, res) => {
-    // Allow requests from a specific origin (adjust this for production environment)
-    res.setHeader('Access-Control-Allow-Origin', '*');  // Update with your allowed domain
+    // Allow requests from a specific origin (update to match your frontend's domain for security)
+    res.setHeader('Access-Control-Allow-Origin', 'https://latestnewsandaffairs.site'); // Replace with your frontend URL
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true');  // Adjust based on your needs (set to true if using cookies or sessions)
