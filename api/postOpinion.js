@@ -16,23 +16,24 @@ const postSchema = new mongoose.Schema({
 });
 const Post = mongoose.model('Post', postSchema);
 
-// Set CORS headers
-const setCorsHeaders = (res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins or set a specific domain
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');  // Allowed methods
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');  // Allowed headers
+// Improved CORS headers function
+const setCorsHeaders = (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');  // You can replace '*' with specific domains like 'https://yourfrontenddomain.com'
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');  // Allow cookies if needed
 };
 
 // Serverless API handler for creating/editing posts
 export default async function handler(req, res) {
     // Handle pre-flight OPTIONS request
     if (req.method === 'OPTIONS') {
-        setCorsHeaders(res);
+        setCorsHeaders(req, res);  // Include the request for OPTIONS requests
         return res.status(200).end(); // Respond with 200 OK for OPTIONS pre-flight
     }
 
-    // Set CORS headers before processing the request
-    setCorsHeaders(res);
+    // Set CORS headers before processing the request for all methods
+    setCorsHeaders(req, res);
 
     if (req.method === 'POST') {
         // Handle new post creation
