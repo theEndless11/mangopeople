@@ -28,7 +28,7 @@ const setCorsHeaders = (res) => {
 
 // Serverless API handler for creating/editing posts
 export default async function handler(req, res) {
-    // Set CORS headers before processing the request
+    // Set CORS headers at the beginning of the handler to ensure they're set before any processing
     setCorsHeaders(res);
 
     // Handle pre-flight OPTIONS request
