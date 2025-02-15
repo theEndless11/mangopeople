@@ -28,7 +28,7 @@ const setCorsHeaders = (res) => {
 
 // Serverless API handler for creating/editing posts
 export default async function handler(req, res) {
-    // Set CORS headers at the beginning of the handler to ensure they're set before any processing
+    // Ensure CORS headers are set before sending the response
     setCorsHeaders(res);
 
     // Handle pre-flight OPTIONS request
@@ -36,18 +36,18 @@ export default async function handler(req, res) {
         return res.status(200).end(); // Respond with 200 OK for OPTIONS pre-flight
     }
 
-    if (req.method === 'POST') {
-        // Handle new post creation
-        const { message, username, sessionId } = req.body;
+    try {
+        if (req.method === 'POST') {
+            // Handle new post creation
+            const { message, username, sessionId } = req.body;
 
-        if (!message || message.trim() === '') {
-            return res.status(400).json({ message: 'Message cannot be empty' });
-        }
-        if (!username || !sessionId) {
-            return res.status(400).json({ message: 'Username and sessionId are required' });
-        }
+            if (!message || message.trim() === '') {
+                return res.status(400).json({ message: 'Message cannot be empty' });
+            }
+            if (!username || !sessionId) {
+                return res.status(400).json({ message: 'Username and sessionId are required' });
+            }
 
-        try {
             console.log('Connecting to database...');
             await connectToDatabase();  // Ensure this step completes
             console.log('Database connected successfully.');
@@ -76,20 +76,15 @@ export default async function handler(req, res) {
                 comments: newPost.comments,
             };
 
-            res.status(201).json(cleanPost);  // Send clean post data without Mongoose metadata
-        } catch (error) {
-            console.error('Error saving post:', error);
-            res.status(500).json({ message: 'Error saving post', error });
-        }
-    } else if (req.method === 'PUT' || req.method === 'PATCH') {
-        // Handle post edit
-        const { postId, message, likes, dislikes, comments } = req.body;
+            return res.status(201).json(cleanPost);  // Send clean post data without Mongoose metadata
+        } else if (req.method === 'PUT' || req.method === 'PATCH') {
+            // Handle post edit
+            const { postId, message, likes, dislikes, comments } = req.body;
 
-        if (!postId) {
-            return res.status(400).json({ message: 'Post ID is required' });
-        }
+            if (!postId) {
+                return res.status(400).json({ message: 'Post ID is required' });
+            }
 
-        try {
             console.log('Connecting to database...');
             await connectToDatabase();  // Ensure this step completes
             console.log('Database connected successfully.');
@@ -137,13 +132,14 @@ export default async function handler(req, res) {
                 comments: post.comments,
             };
 
-            res.status(200).json(updatedPost);  // Send updated post data
+            return res.status(200).json(updatedPost);  // Send updated post data
 
-        } catch (error) {
-            console.error('Error editing post:', error);
-            res.status(500).json({ message: 'Error editing post', error });
+        } else {
+            return res.status(405).json({ message: 'Method Not Allowed' });  // Method not allowed response
         }
-    } else {
-        res.status(405).json({ message: 'Method Not Allowed' });  // Method not allowed response
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        return res.status(500).json({ message: 'Internal Server Error', error });
     }
 }
+
