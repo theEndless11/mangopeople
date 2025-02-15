@@ -18,11 +18,12 @@ const Post = mongoose.model('Post', postSchema);
 
 // Set CORS headers with dynamic domain handling
 const setCorsHeaders = (req, res) => {
-    // Allow requests from a specific origin (update to match your frontend's domain for security)
-    res.setHeader('Access-Control-Allow-Origin', 'https://latestnewsandaffairs.site'); // Replace with your frontend URL
+    // Allow requests from a specific origin (adjust to your frontend URL or allow all origins for testing)
+    res.setHeader('Access-Control-Allow-Origin', 'https://latestnewsandaffairs.site');  // Update to your frontend's URL
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');  // Adjust based on your needs (set to true if using cookies or sessions)
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');  // Allowing additional headers
+    res.setHeader('Access-Control-Allow-Credentials', 'true');  // Allow credentials (cookies or authentication)
+    res.setHeader('Cache-Control', 'no-cache');  // Prevent caching of OPTIONS requests
 };
 
 // Serverless API handler for creating/editing posts
