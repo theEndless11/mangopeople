@@ -16,29 +16,30 @@ const postSchema = new mongoose.Schema({
 });
 const Post = mongoose.model('Post', postSchema);
 
-// Improved CORS headers function
+// Set CORS headers with dynamic domain handling
 const setCorsHeaders = (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');  // You can replace '*' with specific domains like 'https://yourfrontenddomain.com'
+    // Allow requests from a specific origin (adjust this for production environment)
+    res.setHeader('Access-Control-Allow-Origin', '*');  // Update with your allowed domain
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');  // Allow cookies if needed
+    res.setHeader('Access-Control-Allow-Credentials', 'true');  // Adjust based on your needs (set to true if using cookies or sessions)
 };
 
 // Serverless API handler for creating/editing posts
 export default async function handler(req, res) {
     // Handle pre-flight OPTIONS request
     if (req.method === 'OPTIONS') {
-        setCorsHeaders(req, res);  // Include the request for OPTIONS requests
+        setCorsHeaders(req, res);  // Include CORS headers for OPTIONS requests
         return res.status(200).end(); // Respond with 200 OK for OPTIONS pre-flight
     }
 
-    // Set CORS headers before processing the request for all methods
+    // Set CORS headers for other requests (POST, PUT, PATCH, etc.)
     setCorsHeaders(req, res);
 
     if (req.method === 'POST') {
-        // Handle new post creation
         const { message, username, sessionId } = req.body;
 
+        // Validate input
         if (!message || message.trim() === '') {
             return res.status(400).json({ message: 'Message cannot be empty' });
         }
@@ -64,7 +65,7 @@ export default async function handler(req, res) {
                 console.error('Error publishing to Ably:', error);
             }
 
-            // Send only the necessary data (not the full Mongoose document)
+            // Send only necessary data, not the full Mongoose document
             const cleanPost = {
                 _id: newPost._id,
                 message: newPost.message,
@@ -75,7 +76,7 @@ export default async function handler(req, res) {
                 comments: newPost.comments,
             };
 
-            res.status(201).json(cleanPost);  // Send clean post data without Mongoose metadata
+            res.status(201).json(cleanPost);  // Send clean post data
         } catch (error) {
             console.error('Error saving post:', error);
             res.status(500).json({ message: 'Error saving post', error });
@@ -88,7 +89,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ message: 'Post ID is required' });
         }
 
-        // Fetch the post by its ID
         try {
             console.log('Connecting to database...');
             await connectToDatabase();
@@ -113,7 +113,6 @@ export default async function handler(req, res) {
                 post.comments = comments;
             }
 
-            // Save the updated post
             await post.save();
 
             console.log('Post updated:', post);
@@ -126,7 +125,6 @@ export default async function handler(req, res) {
                 console.error('Error publishing to Ably:', error);
             }
 
-            // Send only the necessary data (not the full Mongoose document)
             const updatedPost = {
                 _id: post._id,
                 message: post.message,
@@ -147,5 +145,3 @@ export default async function handler(req, res) {
         res.status(405).json({ message: 'Method Not Allowed' });
     }
 }
-
-
