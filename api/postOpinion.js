@@ -1,6 +1,6 @@
+import { connectToDatabase } from '../utils/db';  // Corrected path
 import mongoose from 'mongoose';
-import { connectToDatabase } from '../utils/db'; // Your connection utility
-import { publishToAbly } from '../utils/ably';  // Assuming you have an Ably utility
+import { publishToAbly } from '../utils/ably';  // Corrected path
 
 // Define the schema for the post
 const postSchema = new mongoose.Schema({
@@ -14,44 +14,38 @@ const postSchema = new mongoose.Schema({
     dislikedBy: [String],  // Store usernames or user IDs of users who disliked the post
     comments: [{ username: String, comment: String, timestamp: Date }]
 });
-
-// Create the model for posts
 const Post = mongoose.model('Post', postSchema);
 
-// Set CORS headers for all methods
+// Set CORS headers
 const setCorsHeaders = (res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins or set a specific domain
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');  // Allowed methods
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');  // Allowed headers
-    res.setHeader('Access-Control-Allow-Credentials', 'true'); // Enable cookies if needed
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS');  // Allowed methods
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');  // Allowed headers
 };
 
 // Serverless API handler for creating/editing posts
 export default async function handler(req, res) {
-    // Ensure CORS headers are set before sending the response
+    // Handle pre-flight OPTIONS request
+    if (req.method === 'OPTIONS') {
+        setCorsHeaders(res);
+        return res.status(200).end(); // Respond with 200 OK for OPTIONS pre-flight
+    }
+
+    // Set CORS headers before processing the request
     setCorsHeaders(res);
 
-    // Handle pre-flight OPTIONS request
- if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    return res.status(200).end();  // Make sure to end it correctly
-}
+    if (req.method === 'POST') {
+        // Handle new post creation
+        const { message, username, sessionId } = req.body;
 
+        if (!message || message.trim() === '') {
+            return res.status(400).json({ message: 'Message cannot be empty' });
+        }
+        if (!username || !sessionId) {
+            return res.status(400).json({ message: 'Username and sessionId are required' });
+        }
 
-    try {
-        if (req.method === 'POST') {
-            // Handle new post creation
-            const { message, username, sessionId } = req.body;
-
-            if (!message || message.trim() === '') {
-                return res.status(400).json({ message: 'Message cannot be empty' });
-            }
-            if (!username || !sessionId) {
-                return res.status(400).json({ message: 'Username and sessionId are required' });
-            }
-
+        try {
             console.log('Connecting to database...');
             await connectToDatabase();  // Ensure this step completes
             console.log('Database connected successfully.');
@@ -61,7 +55,7 @@ export default async function handler(req, res) {
 
             console.log('New post saved:', newPost);
 
-            // Publish to Ably (optional, as per your requirement)
+            // Publish to Ably
             try {
                 await publishToAbly('newOpinion', newPost);
                 console.log('Post published to Ably:', newPost);
@@ -80,17 +74,23 @@ export default async function handler(req, res) {
                 comments: newPost.comments,
             };
 
-            return res.status(201).json(cleanPost);  // Send clean post data without Mongoose metadata
-        } else if (req.method === 'PUT' || req.method === 'PATCH') {
-            // Handle post edit
-            const { postId, message, likes, dislikes, comments } = req.body;
+            res.status(201).json(cleanPost);  // Send clean post data without Mongoose metadata
+        } catch (error) {
+            console.error('Error saving post:', error);
+            res.status(500).json({ message: 'Error saving post', error });
+        }
+    } else if (req.method === 'PUT' || req.method === 'PATCH') {
+        // Handle post edit
+        const { postId, message, likes, dislikes, comments } = req.body;
 
-            if (!postId) {
-                return res.status(400).json({ message: 'Post ID is required' });
-            }
+        if (!postId) {
+            return res.status(400).json({ message: 'Post ID is required' });
+        }
 
+        // Fetch the post by its ID
+        try {
             console.log('Connecting to database...');
-            await connectToDatabase();  // Ensure this step completes
+            await connectToDatabase();
             console.log('Database connected successfully.');
 
             const post = await Post.findById(postId);
@@ -117,7 +117,7 @@ export default async function handler(req, res) {
 
             console.log('Post updated:', post);
 
-            // Publish to Ably (optional)
+            // Publish to Ably
             try {
                 await publishToAbly('editOpinion', post);
                 console.log('Post updated in Ably:', post);
@@ -136,14 +136,14 @@ export default async function handler(req, res) {
                 comments: post.comments,
             };
 
-            return res.status(200).json(updatedPost);  // Send updated post data
+            res.status(200).json(updatedPost);  // Send updated post data
 
-        } else {
-            return res.status(405).json({ message: 'Method Not Allowed' });  // Method not allowed response
+        } catch (error) {
+            console.error('Error editing post:', error);
+            res.status(500).json({ message: 'Error editing post', error });
         }
-    } catch (error) {
-        console.error('Unexpected error:', error);
-        return res.status(500).json({ message: 'Internal Server Error', error });
+    } else {
+        res.status(405).json({ message: 'Method Not Allowed' });
     }
 }
 
